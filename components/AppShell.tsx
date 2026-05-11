@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useTheme } from '@/components/ThemeProvider';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -9,14 +12,22 @@ const navItems = [
 ];
 
 export function AppShell({ children, active = 'Dashboard' }: { children: React.ReactNode; active?: string }) {
+  const { brandConfig } = useTheme();
+  const brandName = brandConfig.brandName || 'Vaycora';
+  const productName = brandConfig.productName || 'Asset Operations';
+
   return (
     <div className="appShell">
       <header className="shellHeader">
         <Link href="/dashboard" className="brandMark">
-          <span className="brandIcon">VM</span>
+          {brandConfig.logoDataUrl ? (
+            <img className="brandLogoPreview shellLogo" src={brandConfig.logoDataUrl} alt={`${brandName} logo`} />
+          ) : (
+            <span className="brandIcon">VM</span>
+          )}
           <span className="brandText">
-            <small>Vaycora</small>
-            <strong>Asset Operations</strong>
+            <small>{brandName}</small>
+            <strong>{productName}</strong>
           </span>
         </Link>
 
@@ -30,7 +41,7 @@ export function AppShell({ children, active = 'Dashboard' }: { children: React.R
 
         <div className="shellActions">
           <span className="pill">Architecture Mode</span>
-          <Link href="/admin/branding" className="btn secondary">Themes</Link>
+          <Link href="/admin/branding" className="btn secondary">Branding</Link>
         </div>
       </header>
 
