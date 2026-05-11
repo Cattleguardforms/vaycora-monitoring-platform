@@ -5,35 +5,58 @@ import { statCards } from '@/data/mock';
 export default function DashboardPage() {
   return (
     <AppShell active="Dashboard">
-      <div className="topbar">
+      <section className="heroPanel">
         <div>
-          <p className="kicker">OBS Monitoring</p>
-          <h1 className="h1">Dashboard</h1>
-          <p className="muted">Architecture room for review counts, flagged records, asset status, and recent activity.</p>
-        </div>
-        <span className="pill accent">Placeholder Architecture</span>
-      </div>
-
-      <section className="grid stats">
-        {statCards.map((card) => (
-          <div className="card" key={card.label}>
-            <p className="muted">{card.label}</p>
-            <div className="statNumber">{card.value}</div>
-            <span className="pill">{card.note}</span>
+          <p className="kicker">Private Operations Command</p>
+          <h1 className="h1">Asset intelligence with executive control.</h1>
+          <p className="muted" style={{ maxWidth: 620 }}>
+            A luxury command layer for monitored assets, OBS review events, sensor intelligence, chain-of-custody, service actions, and future fleet operations.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 24 }}>
+            <span className="pill accent">White-label ready</span>
+            <span className="pill">OBS module active</span>
+            <span className="pill">Asset operations base</span>
           </div>
-        ))}
+        </div>
+
+        <div className="heroMetricGrid">
+          {statCards.map((card) => (
+            <div className="heroMetric" key={card.label}>
+              <strong>{card.value}</strong>
+              <span>{card.label}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="grid two" style={{ marginTop: 18 }}>
+      <section className="grid two">
         <div className="card">
-          <h2 className="cardTitle">Recent OBS Reviews</h2>
-          <p className="muted">This is the live review table placeholder. It will be connected to Supabase next.</p>
-          <ReviewTable />
+          <div className="topbar">
+            <div>
+              <p className="kicker">Review Intelligence</p>
+              <h2 className="cardTitle">Recent OBS Reviews</h2>
+              <p className="muted">Live review table placeholder. This room will connect to Supabase and device events next.</p>
+            </div>
+            <span className="pill warn">Needs data wiring</span>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <ReviewTable />
+          </div>
         </div>
+
         <div className="card">
-          <h2 className="cardTitle">Room Build Plan</h2>
-          <p className="muted">We are building the full architecture first with place cards, then hardening each room.</p>
-          <div className="placeholderTag">Next room: Supabase schema and real auth.</div>
+          <p className="kicker">Build Sequence</p>
+          <h2 className="cardTitle">Luxury shell first. Hardware-agnostic platform next.</h2>
+          <p className="muted">
+            This interface is being shaped as a premium white-label operations system, not a basic admin dashboard.
+          </p>
+          <div className="luxuryDivider" style={{ margin: '20px 0' }} />
+          <div className="statusRail">
+            <div className="statusItem"><span>UI/UX shell</span><span className="pill good">Upgraded</span></div>
+            <div className="statusItem"><span>Branding layer</span><span className="pill warn">Preview</span></div>
+            <div className="statusItem"><span>Supabase schema</span><span className="pill">Next</span></div>
+            <div className="statusItem"><span>Device/sensor API</span><span className="pill">Next</span></div>
+          </div>
         </div>
       </section>
     </AppShell>
