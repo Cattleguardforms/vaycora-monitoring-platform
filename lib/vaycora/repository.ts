@@ -1,6 +1,6 @@
 import { assets as mockAssets, devices as mockDevices, events as mockEvents, rawPayloads as mockPayloads, tenants as mockTenants } from "./mock-data";
 import type { Asset, Device, RawPayload, Tenant, VaycoraEvent } from "./types";
-import { query } from "./db";
+import { query, queryOne } from "./db";
 
 type TenantRow = {
   id: string;
@@ -71,6 +71,27 @@ type PayloadRow = {
   parse_status: RawPayload["parseStatus"];
   parse_error: string | null;
   ack_sent: boolean;
+};
+
+type PayloadDetailRow = PayloadRow & {
+  device_model: string | null;
+  asset_id: string | null;
+  asset_name: string | null;
+  asset_type: string | null;
+  event_count: string | number;
+  location_count: string | number;
+};
+
+type StatsRow = {
+  tenants: string | number;
+  devices: string | number;
+  assets: string | number;
+  payloads: string | number;
+  parsed_payloads: string | number;
+  failed_payloads: string | number;
+  events: string | number;
+  locations: string | number;
+  latest_payload_at: string | null;
 };
 
 function toTenant(row: TenantRow): Tenant {
@@ -176,6 +197,109 @@ export async function getVaycoraDashboardData() {
       rawPayloads: mockPayloads,
     };
   }
+}
+
+export async function getVaycoraStats() {
+  const stats = await queryOne<StatsRow>(`
+    select
+      (select count(*) from tenants) as tenants,
+      (select count(*) from devices) as devices,
+      (select count(*) from assets) as assets,
+      (select count(*) from device_payloads) as payloads,
+      (select count(*) from device_payloads where parse_status = 'parsed') as parsed_payloads,
+      (select count(*) from device_payloads where parse_status = 'failed') as failed_payloads,
+      (select count(*) from events) as events,
+      (select count(*) from location_history) as locations,
+      (select max(received_at)::text from device_payloads) as latest_payload_at
+  `);
+
+  return {
+    tenants: Number(stats?.tenants ?? 0),
+    devices: Number(stats?.devices ?? 0),
+    assets: Number(stats?.assets ?? 0),
+    payloads: Number(stats?.payloads ?? 0),
+    parsedPayloads: Number(stats?.parsed_payloads ?? 0),
+    failedPayloads: Number(stats?.failed_payloads ?? 0),
+    events: Number(stats?.events ?? 0),
+    locations: Number(stats?.locations ?? 0),
+    latestPayloadAt: stats?.latest_payload_at ?? null,
+  };
+}
+
+export async function getPayloadAdminData() {
+  const [payloadRows, stats] = await Promise.all([
+    query<PayloadDetailRow>(`
+      select
+        p.*,
+        d.model as device_model,
+        a.id as asset_id,
+        a.name as asset_name,
+        a.asset_type,
+        (select count(*) from events e where e.raw_payload_id = p.id) as event_count,
+        (select count(*) from location_history l where l.raw_payload_id = p.id) as location_count
+      from device_payloads p
+      left join devices d on d.id = p.device_id
+      left join assets a on a.assigned_device_id = d.id
+      order by p.received_at desc
+      limit 100
+    `),
+    getVaycoraStats(),
+  ]);
+
+  return {
+    stats,
+    payloads: payloadRows.map((row) => ({
+      ...toPayload(row),
+      deviceModel: row.device_model,
+      assetId: row.asset_id,
+      assetName: row.asset_name,
+      assetType: row.asset_type,
+      eventCount: Number(row.event_count ?? 0),
+      locationCount: Number(row.location_count ?? 0),
+    })),
+  };
+}
+
+export async function getPayloadDetailData(payloadId: string) {
+  const payload = await queryOne<PayloadDetailRow>(`
+    select
+      p.*,
+      d.model as device_model,
+      a.id as asset_id,
+      a.name as asset_name,
+      a.asset_type,
+      (select count(*) from events e where e.raw_payload_id = p.id) as event_count,
+      (select count(*) from location_history l where l.raw_payload_id = p.id) as location_count
+    from device_payloads p
+    left join devices d on d.id = p.device_id
+    left join assets a on a.assigned_device_id = d.id
+    where p.id = $1
+    limit 1
+  `, [payloadId]);
+
+  if (!payload) return null;
+
+  const [eventRows, locationRows] = await Promise.all([
+    query<EventRow>("select * from events where raw_payload_id = $1 order by event_time desc", [payloadId]),
+    query<{ id: string; latitude: number; longitude: number; speed: number | null; heading: number | null; recorded_at: string; received_at: string }>(
+      "select id, latitude, longitude, speed, heading, recorded_at::text, received_at::text from location_history where raw_payload_id = $1 order by recorded_at desc",
+      [payloadId]
+    ),
+  ]);
+
+  return {
+    payload: {
+      ...toPayload(payload),
+      deviceModel: payload.device_model,
+      assetId: payload.asset_id,
+      assetName: payload.asset_name,
+      assetType: payload.asset_type,
+      eventCount: Number(payload.event_count ?? 0),
+      locationCount: Number(payload.location_count ?? 0),
+    },
+    events: eventRows.map(toEvent),
+    locations: locationRows,
+  };
 }
 
 export async function getVaycoraAssetDetailData(assetId: string) {
