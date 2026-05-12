@@ -109,7 +109,7 @@ export async function setupVaycoraSchema() {
 
   await query(`
     insert into tenants (id, name, slug, status, enabled_portals)
-    values ('tenant_demo', 'Vaycora Demo Operations', 'demo-ops', 'trial', '["admin", "fleet", "assets", "sanitation", "manufacturing", "video"]'::jsonb)
+    values ('tenant_demo', 'Vaycora Demo Operations', 'demo-ops', 'trial', '["admin", "fleet", "assets", "sanitation", "manufacturing", "video", "rental"]'::jsonb)
     on conflict (id) do update set enabled_portals = excluded.enabled_portals, updated_at = now();
   `);
 
@@ -121,7 +121,8 @@ export async function setupVaycoraSchema() {
       ('device_sanitation_001', 'tenant_demo', '352099001761483', '352099001761483', 'SunTech', 'ST4915LCBF', 'assigned'),
       ('device_generator_001', 'tenant_demo', '352099001761484', '352099001761484', 'SunTech', 'ST4345LB', 'active'),
       ('device_machine_001', 'tenant_demo', '352099001761485', '352099001761485', 'SunTech', 'ST4335 Plus', 'active'),
-      ('device_video_001', 'tenant_demo', '352099001761486', '352099001761486', 'SunTech', 'ST9730', 'active')
+      ('device_video_001', 'tenant_demo', '352099001761486', '352099001761486', 'SunTech', 'ST9730', 'active'),
+      ('device_rental_001', 'tenant_demo', '352099001761487', '352099001761487', 'SunTech', 'ST4505T', 'active')
     on conflict (id) do update set status = excluded.status, model = excluded.model, updated_at = now();
   `);
 
@@ -133,7 +134,8 @@ export async function setupVaycoraSchema() {
       ('asset_porta_001', 'tenant_demo', 'porta_potty', 'Unit 118 - North Jobsite', 'PP-118', 'service_due', 'device_sanitation_001', 35.5201, -97.4928, 0, null, null, null, 67, null, '2026-05-11T14:58:00Z', '{"site_name":"North Jobsite","fill_level":86,"fresh_water":34,"tip_status":"upright","last_serviced_at":"2026-05-08T18:30:00Z"}'::jsonb),
       ('asset_generator_001', 'tenant_demo', 'generator', 'Generator 7 - South Yard', 'GEN-007', 'active', 'device_generator_001', 35.5142, -97.5011, 0, null, null, 13.1, 88, true, now(), '{"fuel_level":60,"propane_level":72,"runtime_hours":382,"load_percent":41,"maintenance_due_hours":118,"power_state":"running"}'::jsonb),
       ('asset_machine_001', 'tenant_demo', 'equipment', 'Press Line 2', 'MACH-02', 'alert', 'device_machine_001', 35.5051, -97.5149, 0, null, null, null, 94, true, now(), '{"machine_state":"stopped","downtime_minutes":47,"runtime_today_hours":5.8,"production_count":1840,"target_count":2400,"oee":68,"fault_code":"E-204 Guard Door"}'::jsonb),
-      ('asset_video_001', 'tenant_demo', 'vehicle', 'Video Truck 22', 'VID-022', 'active', 'device_video_001', 35.4788, -97.5264, 44, 88, true, 12.8, null, true, now(), '{"driver_score":91,"fuel_level":68,"camera_status":"online","road_camera":"online","driver_camera":"online","adas_events_today":2,"dms_events_today":1,"latest_clip_status":"available"}'::jsonb)
+      ('asset_video_001', 'tenant_demo', 'vehicle', 'Video Truck 22', 'VID-022', 'active', 'device_video_001', 35.4788, -97.5264, 44, 88, true, 12.8, null, true, now(), '{"driver_score":91,"fuel_level":68,"camera_status":"online","road_camera":"online","driver_camera":"online","adas_events_today":2,"dms_events_today":1,"latest_clip_status":"available"}'::jsonb),
+      ('asset_rental_001', 'tenant_demo', 'rv', 'Rental RV 31', 'RV-031', 'service_due', 'device_rental_001', 35.4911, -97.5334, 51, 104, true, 12.4, 76, true, now(), '{"rental_mode":true,"rental_customer":"Johnson Family","return_due_at":"2026-05-12T10:30:00Z","hours_until_return":4,"return_readiness_score":42,"required_fuel_level":90,"fuel_level":50,"fresh_water":34,"required_fresh_water":80,"gray_water_dumped":false,"black_water_dumped":false,"propane_level":58,"required_propane_level":75,"cleaning_required":true,"damage_check_required":true,"customer_email":"customer@example.com","alerts_to_send":["Fuel is below return requirement","Fresh water is below return requirement","Gray water has not been dumped","Black water has not been dumped","Propane is below return requirement"]}'::jsonb)
     on conflict (id) do update set
       asset_type = excluded.asset_type,
       name = excluded.name,
