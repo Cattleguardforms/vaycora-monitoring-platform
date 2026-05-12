@@ -42,6 +42,7 @@ export default async function VaycoraPage() {
             <span className="pill accent">SunTech ingestion live</span>
             <span className="pill">Data source: {source}</span>
             <span className="pill">Multi-portal architecture</span>
+            <Link className="pill good" href="/vaycora/admin/payloads">Open Payload Admin</Link>
           </div>
         </div>
         <div className="heroMetricGrid">
@@ -157,7 +158,10 @@ export default async function VaycoraPage() {
             <p className="kicker">Payload Debugger</p>
             <h2 className="cardTitle">Recent SunTech payloads</h2>
           </div>
-          <Link className="btn secondary" href="/api/vaycora/db-check">Database Check</Link>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link className="btn secondary" href="/vaycora/admin/payloads">Open Payload Admin</Link>
+            <Link className="btn secondary" href="/api/vaycora/db-check">Database Check</Link>
+          </div>
         </div>
         <div className="tableWrap" style={{ marginTop: 16 }}>
           <table>
@@ -169,7 +173,7 @@ export default async function VaycoraPage() {
                   <td><strong>{payload.deviceIdentifier ?? "Unknown"}</strong><br /><span className="muted">{payload.deviceId ?? "unmatched"}</span></td>
                   <td><span className={payload.parseStatus === "parsed" ? "pill good" : "pill bad"}>{payload.parseStatus}</span></td>
                   <td>{payload.payloadFormat}</td>
-                  <td><span className="muted">{payload.id}</span></td>
+                  <td><Link className="pill" href={`/vaycora/admin/payloads/${payload.id}`}>{payload.id}</Link></td>
                 </tr>
               ))}
               {rawPayloads.length === 0 ? <tr><td colSpan={5}>No payloads yet.</td></tr> : null}
