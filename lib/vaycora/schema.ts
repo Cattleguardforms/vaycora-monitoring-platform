@@ -135,7 +135,7 @@ export async function setupVaycoraSchema() {
       ('asset_generator_001', 'tenant_demo', 'generator', 'Generator 7 - South Yard', 'GEN-007', 'active', 'device_generator_001', 35.5142, -97.5011, 0, null, null, 13.1, 88, true, now(), '{"fuel_level":60,"propane_level":72,"runtime_hours":382,"load_percent":41,"maintenance_due_hours":118,"power_state":"running"}'::jsonb),
       ('asset_machine_001', 'tenant_demo', 'equipment', 'Press Line 2', 'MACH-02', 'alert', 'device_machine_001', 35.5051, -97.5149, 0, null, null, null, 94, true, now(), '{"machine_state":"stopped","downtime_minutes":47,"runtime_today_hours":5.8,"production_count":1840,"target_count":2400,"oee":68,"fault_code":"E-204 Guard Door"}'::jsonb),
       ('asset_video_001', 'tenant_demo', 'vehicle', 'Video Truck 22', 'VID-022', 'active', 'device_video_001', 35.4788, -97.5264, 44, 88, true, 12.8, null, true, now(), '{"driver_score":91,"fuel_level":68,"camera_status":"online","road_camera":"online","driver_camera":"online","adas_events_today":2,"dms_events_today":1,"latest_clip_status":"available"}'::jsonb),
-      ('asset_rental_001', 'tenant_demo', 'rv', 'Rental RV 31', 'RV-031', 'service_due', 'device_rental_001', 35.4911, -97.5334, 51, 104, true, 12.4, 76, true, now(), '{"rental_mode":true,"rental_customer":"Johnson Family","return_due_at":"2026-05-12T10:30:00Z","hours_until_return":4,"return_readiness_score":42,"required_fuel_level":90,"fuel_level":50,"fresh_water":34,"required_fresh_water":80,"gray_water_dumped":false,"black_water_dumped":false,"propane_level":58,"required_propane_level":75,"cleaning_required":true,"damage_check_required":true,"customer_email":"customer@example.com","alerts_to_send":["Fuel is below return requirement","Fresh water is below return requirement","Gray water has not been dumped","Black water has not been dumped","Propane is below return requirement"]}'::jsonb)
+      ('asset_rental_001', 'tenant_demo', 'rv', 'Rental RV 31', 'RV-031', 'service_due', 'device_rental_001', 35.4911, -97.5334, 51, 104, true, 12.4, 76, true, now(), '{"rental_mode":true,"rental_customer":"Johnson Family","return_due_at":"2026-05-12T10:30:00Z","hours_until_return":4,"return_readiness_score":42,"required_fuel_level":90,"fuel_level":50,"fresh_water":34,"required_fresh_water":80,"gray_water_dumped":false,"black_water_dumped":false,"propane_level":58,"required_propane_level":75,"cleaning_required":true,"damage_check_required":true,"customer_email":"customer@example.com","geofence_enabled":true,"geofence_name":"Approved Oklahoma Rental Zone","geofence_status":"violation","distance_outside_miles":18.4,"geofence_message":"Rental RV 31 has left the approved rental zone and is moving away from the allowed area.","alerts_to_send":["Geofence violation: unit has left approved rental area","Fuel is below return requirement","Fresh water is below return requirement","Gray water has not been dumped","Black water has not been dumped","Propane is below return requirement"]}'::jsonb)
     on conflict (id) do update set
       asset_type = excluded.asset_type,
       name = excluded.name,
@@ -153,5 +153,12 @@ export async function setupVaycoraSchema() {
       last_seen_at = excluded.last_seen_at,
       metadata = excluded.metadata,
       updated_at = now();
+  `);
+
+  await query(`
+    insert into events (id, tenant_id, asset_id, device_id, event_type, event_time, location_lat, location_lng, value_json, source)
+    values
+      ('event_rental_geofence_001', 'tenant_demo', 'asset_rental_001', 'device_rental_001', 'rental.geofence_violation', now(), 35.4911, -97.5334, '{"severity":"high","geofence":"Approved Oklahoma Rental Zone","distance_outside_miles":18.4,"customer_notification":"Your rental has left the approved travel area. Please return to the approved zone or contact support."}'::jsonb, 'vaycora')
+    on conflict (id) do update set event_time = excluded.event_time, value_json = excluded.value_json;
   `);
 }
