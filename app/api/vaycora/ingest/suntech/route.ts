@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (parseResult.status === "parsed" && parseResult.normalized && asset) {
+    if (parseResult.status === "parsed" && parseResult.normalized && asset && device) {
       const normalized = parseResult.normalized;
       const hasLocation = typeof normalized.latitude === "number" && typeof normalized.longitude === "number";
 
