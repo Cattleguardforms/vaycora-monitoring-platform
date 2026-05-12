@@ -14,6 +14,21 @@ export async function setupVaycoraSchema() {
   `);
 
   await query(`
+    create table if not exists brand_settings (
+      tenant_id text primary key references tenants(id),
+      company_name text not null default 'Vaycora Demo Operations',
+      short_name text not null default 'Vaycora',
+      portal_type text not null default 'rental',
+      primary_color text not null default '#123c2b',
+      accent_color text not null default '#e96f12',
+      background_mode text not null default 'dark',
+      dashboard_style text not null default 'operations',
+      logo_url text,
+      updated_at timestamptz not null default now()
+    );
+  `);
+
+  await query(`
     create table if not exists devices (
       id text primary key,
       tenant_id text references tenants(id),
@@ -111,6 +126,12 @@ export async function setupVaycoraSchema() {
     insert into tenants (id, name, slug, status, enabled_portals)
     values ('tenant_demo', 'Vaycora Demo Operations', 'demo-ops', 'trial', '["admin", "fleet", "assets", "sanitation", "manufacturing", "video", "rental"]'::jsonb)
     on conflict (id) do update set enabled_portals = excluded.enabled_portals, updated_at = now();
+  `);
+
+  await query(`
+    insert into brand_settings (tenant_id, company_name, short_name, portal_type, primary_color, accent_color, background_mode, dashboard_style)
+    values ('tenant_demo', 'Vaycora Demo Operations', 'Vaycora', 'rental', '#123c2b', '#e96f12', 'dark', 'operations')
+    on conflict (tenant_id) do nothing;
   `);
 
   await query(`
